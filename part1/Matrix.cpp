@@ -1,7 +1,7 @@
 #include "Matrix.h"
 #include <vector>
 #include <iostream>
-
+#include <cmath>
 
 //默认构造矩阵
  Matrix::Matrix(size_t r,size_t c)
@@ -109,6 +109,7 @@ Matrix Matrix::operator*(const Matrix& other)
     return result;
 }
 
+//RELU函数
 Matrix RELU(Matrix& target){    
     for (size_t i = 0; i < target.get_colums()*target.get_rows(); ++i)
     {
@@ -117,5 +118,52 @@ Matrix RELU(Matrix& target){
         }
     }
     return target;
+}
+
+//SoftMax函数
+Matrix softmax(Matrix target)
+{
+    //行向量情况
+    if(target.get_colums() == 1 && target.get_rows() != 1){
+        
+        float sum=0.0f;
+        size_t x=target.get_rows();
+        Matrix e_num(x,1);
+        Matrix result(x,1);
+        
+        for (size_t i = 0; i < x ; ++i)
+        {
+            e_num.elements[i]=std::exp(target.elements[i]);
+            sum += e_num.elements[i];
+        }
+        for (size_t i = 0; i < x; ++i)
+        {
+            result.elements[i] = e_num.elements[i]/sum;
+        }
+        return result;
+    }
+    //列向量情况
+    else if (target.get_rows() == 1 && target.get_colums() != 1)
+    {
+        float sum=0.0f;
+        size_t x=target.get_colums();
+        Matrix e_num(1,x);
+        Matrix result(1,x);
+        
+        for (size_t i = 0; i < x ; ++i)
+        {
+            e_num.elements[i]=std::exp(target.elements[i]);
+            sum += e_num.elements[i];
+        }
+        for (size_t i = 0; i < x; ++i)
+        {
+            result.elements[i] = e_num.elements[i]/sum;
+        }
+        return result;
+    }
+    else{
+        std::cerr <<"这不是一个向量，无法进行操作" <<std::endl;
+        return Matrix();
+    }
 }
 

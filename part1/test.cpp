@@ -31,4 +31,13 @@ int main(){
     E = B * C;
     std::cout <<"E:" <<std::endl ;
     E.print();
+    //SoftMax函数
+    Matrix F(1,3);
+    Matrix G(3,1);
+    F(0, 0) = 1.0f; F(0, 1) = 2.0f; F(0, 2) = 3.0f;
+    G(0, 0) = 7.0f; G(1, 0) = 9.0f; G(2, 0) = 11.0f; 
+    Matrix result1 = softmax(F);
+    Matrix result2 = softmax(G);
+    result1.print();
+    result2.print();
 }
