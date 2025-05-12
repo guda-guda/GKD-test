@@ -28,7 +28,7 @@ public:
     Matrix operator+(const Matrix& other);//矩阵加法,重载运算符"+"
     Matrix operator*(const Matrix& other);//矩阵乘法,重载运算符"*"
     void print() const;//打印矩阵
-    friend Matrix RELU(Matrix& target);//RELU函数
+    friend Matrix RELU(Matrix target);//RELU函数
     friend Matrix softmax(Matrix target);//softmax函数
 };
 

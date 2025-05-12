@@ -1,6 +1,7 @@
 //这个文件用于测试part1内容
 
 #include "Matrix.h"
+#include "model.h"
 #include <iostream>
 
 int main(){
@@ -20,9 +21,9 @@ int main(){
     std::cout <<"A:" <<std::endl ; 
     A.print();
     //RELU函数
-    RELU(A);
-    std::cout <<"RELU A:" << std::endl;
-    A.print();
+    Matrix H=RELU(A);
+    std::cout <<"RELU H:" << std::endl;
+    H.print();
    //矩阵加法
     D = A + B;
     std::cout <<"D:" <<std::endl ;
@@ -40,4 +41,14 @@ int main(){
     Matrix result2 = softmax(G);
     result1.print();
     result2.print();
+    //model类的测试
+    Matrix w1(784, 500);
+    Matrix b1(1, 500);
+    Matrix w2(500, 10);
+    Matrix b2(1, 10);
+    model test(w1,b1,w2,b2);
+    Matrix input(1, 784);
+    Matrix result3=test.forward(input);
+    std::cout <<"The result of the standard model is:" <<std::endl;
+    result3.print();
 }
