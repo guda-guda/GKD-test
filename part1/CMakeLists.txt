@@ -7,4 +7,4 @@ project(test)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexec-charset=gbk")
 
 #add the executable
-add_executable(test Matrix.h Matrix.cpp RELU.cpp)
+add_executable(test Matrix.h Matrix.cpp test.cpp)
