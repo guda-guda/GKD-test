@@ -110,14 +110,15 @@ Matrix Matrix::operator*(const Matrix& other)
 }
 
 //RELU函数
-Matrix RELU(Matrix& target){    
-    for (size_t i = 0; i < target.get_colums()*target.get_rows(); ++i)
+Matrix RELU(Matrix target){    
+    Matrix result = target;
+    for (size_t i = 0; i < result.get_colums()*result.get_rows(); ++i)
     {
-        if(target.elements[i] < 0){
-        target.elements[i] = 0;
+        if(result.elements[i] < 0){
+        result.elements[i] = 0;
         }
     }
-    return target;
+    return result;
 }
 
 //SoftMax函数
