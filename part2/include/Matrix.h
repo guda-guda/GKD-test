@@ -16,7 +16,6 @@ public:
     std::vector<float> elements;
     size_t rows;
     size_t colums;
-    
     Matrix(){rows = 0; colums = 0;};
     Matrix(size_t r,size_t c);//默认构造函数
     Matrix(const std::vector<std::vector<float>> mat);
