@@ -3,6 +3,7 @@
 #include "json.hpp"
 #include <iostream>
 #include <fstream>
+#include <cstddef>
 #include <string>
 
 using json = nlohmann::json;
@@ -15,13 +16,14 @@ Matrix read_binfile(std::string file_path,size_t r,size_t l)
     
     if(!binfile.is_open()){
         std::cerr <<"无法打开二进制文件:" <<file_path <<std::endl;
+        return result;
     }
 
     for(size_t i = 0;i < r;++i){
         for (size_t j = 0; j < l; ++j)
         {
             float value;
-            binfile.read(reinterpret_cast<char*>(&value),sizeof(float));
+            binfile.read( reinterpret_cast<char*>(&value),sizeof(float));
             result(i,j)= value;
         }
     }
@@ -33,7 +35,7 @@ int main()
 {
     json j;
     Matrix w1,b1,w2,b2;
-    std::ifstream jfile("part2\\mnist-fc\\meta.json");
+    std::ifstream jfile("E:\\code\\GKD-test\\part2\\mnist-fc\\meta.json");
     if(!jfile.is_open()){
         std::cerr <<"无法打开文件meta.json" <<std::endl;
         return 1;
@@ -41,7 +43,7 @@ int main()
     jfile >> j;
     jfile.close();
 
-    //读取数据作为长与宽
+    //读取数据作为长与宽,长是列数，宽是行数
     size_t w1_rows = j["fc1.weight"][0].get<int>();
     size_t w1_cols = j["fc1.weight"][1].get<int>();
     size_t b1_rows = j["fc1.bias"][0].get<int>();
@@ -52,17 +54,35 @@ int main()
     size_t b2_cols = j["fc2.bias"][1].get<int>();
 
     //用读取的长宽初始化矩阵的大小
-    w1(w1_rows,w1_cols);
-    b1(b1_rows,b1_cols);
-    w2(w2_rows,w2_cols);
-    b2(b2_rows,b2_cols);
+    w1 = Matrix(w1_rows, w1_cols);
+    b1 = Matrix(b1_rows, b1_cols);
+    w2 = Matrix(w2_rows, w2_cols);
+    b2 = Matrix(b2_rows, b2_cols);
 
+    //测试读取到的长宽是否正确
+    /*std::cout <<"w1的长宽分别是:" <<std::endl;
+    std::cout <<w1.get_colums() <<" " <<w1.get_rows() <<std::endl;
+    std::cout <<"b1的长宽分别是:" <<std::endl;
+    std::cout <<b1.get_colums() <<" " <<b1.get_rows() <<std::endl;
+    std::cout <<"w2的长宽分别是:" <<std::endl;
+    std::cout <<w2.get_colums() <<" " <<w2.get_rows() <<std::endl;
+    std::cout <<"b2的长宽分别是:" <<std::endl;
+    std::cout <<b2.get_colums() <<" " <<b2.get_rows() <<std::endl;*/
+    
     //读取二进制文件
-    w1=read_binfile("part2\\mnist-fc\\fc1.weight",w1_rows,w1_cols); 
-    b1=read_binfile("part2\\mnist-fc\\fc1.bias",b1_rows,b1_cols);
-    w2=read_binfile("part2\\mnist-fc\\fc2.weight",w2_rows,w2_cols);
-    b2=read_binfile("part2\\mnist-fc\\fc2.bias",b2_rows,b2_cols);
+    w1=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc1.weight",w1_rows,w1_cols); 
+    b1=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc1.bias",b1_rows,b1_cols);
+    w2=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc2.weight",w2_rows,w2_cols);
+    b2=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc2.bias",b2_rows,b2_cols);
 
+    //打印读取到的矩阵
+    //std::cout <<"w1:" <<std::endl;
+    //w1.print();
+    //b1.print();
+    //w2.print();
+    //b2.print();
+
+    //测试model类
     model test(w1,b1,w2,b2);
     Matrix input(1, 784);
     Matrix result=test.forward(input);
