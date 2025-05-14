@@ -4,6 +4,7 @@
 #define Matrix_H
 
 #include <vector>
+#include <cstddef>
 
 //基于int行列的矩阵无法生成矩阵，矩阵索引超出范围，修改为size_t类型，还是无法正常生成，排除int的问题
 //将矩阵索引的运算符重载内的cerr改为throw,还是无法解决问题
@@ -16,6 +17,7 @@ public:
     std::vector<float> elements;
     size_t rows;
     size_t colums;
+    
     Matrix(){rows = 0; colums = 0;};
     Matrix(size_t r,size_t c);//默认构造函数
     Matrix(const std::vector<std::vector<float>> mat);
