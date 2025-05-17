@@ -31,6 +31,25 @@
     }
  }
 
+ //OpenCV矩阵转换
+Matrix::Matrix(const cv::Mat& srcImage){
+        if (srcImage.channels()!=1)
+        {
+            std::cerr <<"错误的通道数，仅支持灰度图" <<std::endl;
+            return;
+        }
+        colums =srcImage.cols;
+        rows =srcImage.rows;
+        elements.resize(rows*colums,0.0f);//resize方法用一维向量存储二维数据
+        //每个元素归一化
+        for(size_t i = 0;i<rows;++i){
+             for (size_t j = 0; j < colums; ++j){
+                uchar pixelValue = srcImage.at<uchar>(i,j);
+                elements[i*colums+j] = static_cast<float>(pixelValue)/ 255.0f;
+             }
+        }
+ }
+
  Matrix::~Matrix()
 {
     //析构函数
@@ -167,4 +186,5 @@ Matrix softmax(Matrix target)
         return Matrix();
     }
 }
+
 
