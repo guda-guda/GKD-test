@@ -1,3 +1,0 @@
-E:/code/GKD-test/part2/build/CMakeFiles/File-read.dir
-E:/code/GKD-test/part2/build/CMakeFiles/edit_cache.dir
-E:/code/GKD-test/part2/build/CMakeFiles/rebuild_cache.dir

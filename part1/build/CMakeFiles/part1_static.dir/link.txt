@@ -1,2 +1,0 @@
-E:\mingw64\bin\ar.exe qc libpart1_static.a CMakeFiles/part1_static.dir/Matrix.cpp.obj "CMakeFiles/part1_static.dir/CMakeFiles/4.0.0-rc3/CompilerIdCXX/CMakeCXXCompilerId.cpp.obj"
-E:\mingw64\bin\ranlib.exe libpart1_static.a
