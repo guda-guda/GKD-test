@@ -12,9 +12,9 @@ using namespace cv;
 using json = nlohmann::json;
 
 //读取二进制文件
-Matrix read_binfile(std::string file_path,size_t r,size_t l)
+Matrix<float> read_binfile(std::string file_path,size_t r,size_t l)
 {
-    Matrix result(r,l);
+    Matrix<float> result(r,l);
     std::ifstream binfile(file_path,std::ios::binary);
     
     if(!binfile.is_open()){
@@ -34,10 +34,10 @@ Matrix read_binfile(std::string file_path,size_t r,size_t l)
     return result;
 }
 
-model construct()
+model<float> construct()
 {
     json j;
-    Matrix w1,b1,w2,b2;
+    Matrix<float> w1,b1,w2,b2;
     std::ifstream jfile("E:\\code\\GKD-test\\part2\\mnist-fc\\meta.json");
     if(!jfile.is_open()){
         std::cerr <<"无法打开文件meta.json" <<std::endl;
@@ -56,10 +56,10 @@ model construct()
     size_t b2_cols = j["fc2.bias"][1].get<int>();
 
     //用读取的长宽初始化矩阵的大小
-    w1 = Matrix(w1_rows, w1_cols);
-    b1 = Matrix(b1_rows, b1_cols);
-    w2 = Matrix(w2_rows, w2_cols);
-    b2 = Matrix(b2_rows, b2_cols);
+    w1 = Matrix<float>(w1_rows, w1_cols);
+    b1 = Matrix<float>(b1_rows, b1_cols);
+    w2 = Matrix<float>(w2_rows, w2_cols);
+    b2 = Matrix<float>(b2_rows, b2_cols);
 
     //读取二进制文件
     w1=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc1.weight",w1_rows,w1_cols); 
@@ -67,13 +67,13 @@ model construct()
     w2=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc2.weight",w2_rows,w2_cols);
     b2=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc2.bias",b2_rows,b2_cols);
 
-    model result(w1,b1,w2,b2);
+    model<float> result(w1,b1,w2,b2);
     return result;
 }
 
 int main()
 {
-    Mat num = imread("E:\\code\\GKD-test\\part3\\nums\\2.png",IMREAD_GRAYSCALE);
+    Mat num = imread("E:\\code\\GKD-test\\part6\\nums\\2.png",IMREAD_GRAYSCALE);
     if(num.empty())
     {
         std::cerr <<"无法加载图像" <<std::endl;
@@ -85,11 +85,11 @@ int main()
     resize(num,renum,Size(28,28),0,0,INTER_AREA);//调用resize方法调整图片矩阵大小
     
     //矩阵转化
-    Matrix mtxnum(renum);
+    Matrix<float> mtxnum(renum);
     //std::cout << "Matrix尺寸:rows:" << mtxnum.get_rows() << ",cols:" << mtxnum.get_colums() << std::endl;
     //forward方法
-    model test =construct();
-    Matrix result=test.forward(mtxnum);
+    model<float> test =construct();
+    Matrix<float> result=test.forward(mtxnum);
     std::cout <<"The result of the standard model is:" <<std::endl;
     result.print();
     return 0;
