@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "iostream": "cpp",
+        "ostream": "cpp",
         "fstream": "cpp",
         "iosfwd": "cpp",
         "any": "cpp",
@@ -50,7 +51,6 @@
         "limits": "cpp",
         "new": "cpp",
         "numbers": "cpp",
-        "ostream": "cpp",
         "ranges": "cpp",
         "span": "cpp",
         "sstream": "cpp",
@@ -59,7 +59,17 @@
         "text_encoding": "cpp",
         "typeinfo": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "chrono": "cpp",
+        "complex": "cpp",
+        "condition_variable": "cpp",
+        "cstdarg": "cpp",
+        "list": "cpp",
+        "set": "cpp",
+        "mutex": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

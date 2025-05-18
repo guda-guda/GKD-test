@@ -9,9 +9,9 @@
 using json = nlohmann::json;
 
 //读取二进制文件
-Matrix read_binfile(std::string file_path,size_t r,size_t l)
+Matrix<float> read_binfile(std::string file_path,size_t r,size_t l)
 {
-    Matrix result(r,l);
+    Matrix<float> result(r,l);
     std::ifstream binfile(file_path,std::ios::binary);
     
     if(!binfile.is_open()){
@@ -35,7 +35,7 @@ Matrix read_binfile(std::string file_path,size_t r,size_t l)
 int main()
 {
     json j;
-    Matrix w1,b1,w2,b2;
+    Matrix<float> w1,b1,w2,b2;
     std::ifstream jfile("E:\\code\\GKD-test\\part2\\mnist-fc\\meta.json");
     if(!jfile.is_open()){
         std::cerr <<"无法打开文件meta.json" <<std::endl;
@@ -55,10 +55,10 @@ int main()
     size_t b2_cols = j["fc2.bias"][1].get<int>();
 
     //用读取的长宽初始化矩阵的大小
-    w1 = Matrix(w1_rows, w1_cols);
-    b1 = Matrix(b1_rows, b1_cols);
-    w2 = Matrix(w2_rows, w2_cols);
-    b2 = Matrix(b2_rows, b2_cols);
+    w1 = Matrix<float>(w1_rows, w1_cols);
+    b1 = Matrix<float>(b1_rows, b1_cols);
+    w2 = Matrix<float>(w2_rows, w2_cols);
+    b2 = Matrix<float>(b2_rows, b2_cols);
 
     //测试读取到的长宽是否正确
     /*std::cout <<"w1的长宽分别是:" <<std::endl;
@@ -84,9 +84,9 @@ int main()
     //b2.print();
 
     //测试model类
-    model test(w1,b1,w2,b2);
-    Matrix input(1, 784);
-    Matrix result=test.forward(input);
+    model<float> test(w1,b1,w2,b2);
+    Matrix<float> input(1, 784);
+    Matrix<float> result=test.forward(input);
     std::cout <<"The result of the standard model is:" <<std::endl;
     result.print();
 
