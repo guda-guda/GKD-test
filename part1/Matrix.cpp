@@ -38,14 +38,16 @@ Matrix::Matrix(const cv::Mat& srcImage){
             std::cerr <<"错误的通道数，仅支持灰度图" <<std::endl;
             return;
         }
-        colums =srcImage.cols;
-        rows =srcImage.rows;
-        elements.resize(rows*colums,0.0f);//resize方法用一维向量存储二维数据
-        //每个元素归一化
+       size_t l =srcImage.cols;
+       size_t r =srcImage.rows;
+        //拍扁，每个元素归一化
+        rows =1;
+        colums = l*r;
         for(size_t i = 0;i<rows;++i){
              for (size_t j = 0; j < colums; ++j){
                 uchar pixelValue = srcImage.at<uchar>(i,j);
-                elements[i*colums+j] = static_cast<float>(pixelValue)/ 255.0f;
+                float trans = static_cast<float>(pixelValue)/ 255.0f;
+                elements.push_back(trans); 
              }
         }
  }

@@ -1,0 +1,1 @@
+ "E:/code/GKD-test/part3/lib/libpart1_static.a" "E:/code/GKD-test/part3/lib/libopencv_world4100.dll.a" -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 
