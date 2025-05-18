@@ -1,11 +1,14 @@
-#include "Matrix.h"
-#include "model.h"
-#include "json.hpp"
+#include <opencv2/opencv.hpp>
 #include <iostream>
+#include <vector>
 #include <fstream>
 #include <cstddef>
 #include <string>
+#include "json.hpp"
+#include "Matrix.h"
+#include "model.h"
 
+using namespace cv;
 using json = nlohmann::json;
 
 //读取二进制文件
@@ -31,15 +34,13 @@ Matrix read_binfile(std::string file_path,size_t r,size_t l)
     return result;
 }
 
-
-int main()
+model construct()
 {
     json j;
     Matrix w1,b1,w2,b2;
     std::ifstream jfile("E:\\code\\GKD-test\\part2\\mnist-fc\\meta.json");
     if(!jfile.is_open()){
         std::cerr <<"无法打开文件meta.json" <<std::endl;
-        return 1;
     }
     jfile >> j;
     jfile.close();
@@ -60,37 +61,36 @@ int main()
     w2 = Matrix(w2_rows, w2_cols);
     b2 = Matrix(b2_rows, b2_cols);
 
-    //测试读取到的长宽是否正确
-    /*std::cout <<"w1的长宽分别是:" <<std::endl;
-    std::cout <<w1.get_colums() <<" " <<w1.get_rows() <<std::endl;
-    std::cout <<"b1的长宽分别是:" <<std::endl;
-    std::cout <<b1.get_colums() <<" " <<b1.get_rows() <<std::endl;
-    std::cout <<"w2的长宽分别是:" <<std::endl;
-    std::cout <<w2.get_colums() <<" " <<w2.get_rows() <<std::endl;
-    std::cout <<"b2的长宽分别是:" <<std::endl;
-    std::cout <<b2.get_colums() <<" " <<b2.get_rows() <<std::endl;*/
-    
     //读取二进制文件
     w1=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc1.weight",w1_rows,w1_cols); 
     b1=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc1.bias",b1_rows,b1_cols);
     w2=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc2.weight",w2_rows,w2_cols);
     b2=read_binfile("E:\\code\\GKD-test\\part2\\mnist-fc\\fc2.bias",b2_rows,b2_cols);
 
-    //打印读取到的矩阵
-    //std::cout <<"w1:" <<std::endl;
-    //w1.print();
-    //b1.print();
-    //w2.print();
-    //b2.print();
-
-    //测试model类
-    model test(w1,b1,w2,b2);
-    Matrix input(1, 784);
-    Matrix result=test.forward(input);
-    std::cout <<"The result of the standard model is:" <<std::endl;
-    result.print();
-
-    return 0;
+    model result(w1,b1,w2,b2);
+    return result;
 }
 
-
+int main()
+{
+    Mat num = imread("E:\\code\\GKD-test\\part3\\nums\\2.png",IMREAD_GRAYSCALE);
+    if(num.empty())
+    {
+        std::cerr <<"无法加载图像" <<std::endl;
+        return -1;
+    }
+    
+    //调整大小
+    Mat renum;
+    resize(num,renum,Size(28,28),0,0,INTER_AREA);//调用resize方法调整图片矩阵大小
+    
+    //矩阵转化
+    Matrix mtxnum(renum);
+    //std::cout << "Matrix尺寸:rows:" << mtxnum.get_rows() << ",cols:" << mtxnum.get_colums() << std::endl;
+    //forward方法
+    model test =construct();
+    Matrix result=test.forward(mtxnum);
+    std::cout <<"The result of the standard model is:" <<std::endl;
+    result.print();
+    return 0;
+}
