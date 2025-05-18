@@ -1,3 +1,0 @@
-F:\Cmake\bin\cmake.exe -E rm -f CMakeFiles\opencv_nums.dir/objects.a
-E:\mingw64\bin\ar.exe qc CMakeFiles\opencv_nums.dir/objects.a @CMakeFiles\opencv_nums.dir\objects1.rsp
-E:\mingw64\bin\c++.exe  -fexec-charset=gbk -Wl,--whole-archive CMakeFiles\opencv_nums.dir/objects.a -Wl,--no-whole-archive -o opencv_nums.exe -Wl,--out-implib,libopencv_nums.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\opencv_nums.dir\linkLibs.rsp
