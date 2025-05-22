@@ -5,51 +5,6 @@
 #include <chrono>
 #include <thread>
 
-template<typename T>
-void BlockMatrix_multiply(const Matrix<T>& m1,const Matrix<T>& m2,Matrix<T>& result,size_t startrow,size_t endrow)
-{
-    size_t col = m1.get_colums();
-    size_t m2_cols =m2.get_colums();
-    for(size_t i= startrow ; i<endrow;++i){
-        for(size_t j = 0;j < m2_cols;++j){
-            T outcome = 0;
-            for(size_t k = 0;k < col ;++k){
-                outcome += m1(i,k)*m2(k,j);  
-            }
-            result(i,j) = outcome;
-        }
-    }
-}
-
-template<typename T>
-Matrix<T> Blockmultiply_threads(const Matrix<T>& m1,const Matrix<T>& m2,int core_use)
-{   
-    size_t r=m1.get_rows();
-    size_t l=m2.get_colums();
-    size_t startrow,endrow;
-    std::vector<std::thread> threads;
-    int numthreads = core_use;
-    size_t blocksize = r/numthreads;
-
-    Matrix<T> result(r,l);
-    for(size_t i = 0;i<numthreads;++i)
-    {
-        startrow = i*blocksize;
-        if(i == numthreads-1){
-            endrow = r; //确保无论是否整除，都能包含所有行
-        }
-        else{
-            endrow = blocksize*(i+1);
-        }
-        threads.emplace_back(BlockMatrix_multiply<T>,std::cref(m1),std::cref(m2),std::ref(result),startrow,endrow);
-    }
-    
-    for(size_t j=0;j< numthreads;++j){
-        threads[j].join();
-    }
-    return result;
-}
-
 int main(){
     Matrix<float> w1(7840, 1000);
     Matrix<float> b1(1000, 1000);
