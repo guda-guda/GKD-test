@@ -7,6 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <cmath>
+#include <thread>
 
 //基于int行列的矩阵无法生成矩阵，矩阵索引超出范围，修改为size_t类型，还是无法正常生成，排除int的问题
 //将矩阵索引的运算符重载内的cerr改为throw,还是无法解决问题
@@ -42,6 +43,7 @@ public:
 
     Matrix<T> operator+(const Matrix<T>& other);//矩阵加法,重载运算符"+"
     Matrix<T> operator*(const Matrix<T>& other); //矩阵乘法,重载运算符"*"
+    Matrix<T> Blockmultiply_threads(const Matrix<T>& m1,const Matrix<T>& m2,int core_use);//多线程乘法，每个线程负责计算一部分行列的矩阵相乘，然后求和
     
     void print() const;//打印矩阵  
     
@@ -115,7 +117,6 @@ Matrix<T> Matrix<T>::operator+(const Matrix<T>& other)
 }
 
 //矩阵乘法,重载运算符"*"
-//part4修改：多线程，每个线程负责计算一部分行列的矩阵相乘，然后求和
 template<typename T>
 Matrix<T> Matrix<T>::operator*(const Matrix<T>& other) 
     {
@@ -137,6 +138,53 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T>& other)
     }
     return result;
 }
+
+//part4修改：多线程乘法，每个线程负责计算一部分行列的矩阵相乘，然后求和
+template<typename T>
+void BlockMatrix_multiply(const Matrix<T>& m1,const Matrix<T>& m2,Matrix<T>& result,size_t startrow,size_t endrow)
+{
+    size_t col = m1.get_colums();
+    size_t m2_cols =m2.get_colums();
+    for(size_t i= startrow ; i<endrow;++i){
+        for(size_t j = 0;j < m2_cols;++j){
+            T outcome = 0;
+            for(size_t k = 0;k < col;++k){
+                outcome += m1(i,k)*m2(k,j);  
+            }
+            result(i,j) = outcome;
+        }
+    }
+}
+//管理多线程
+template<typename T>
+Matrix<T> Blockmultiply_threads(const Matrix<T>& m1,const Matrix<T>& m2,int core_use)
+{   
+    size_t r=m1.get_rows();
+    size_t l=m2.get_colums();
+    size_t startrow,endrow;
+    std::vector<std::thread> threads;
+    int numthreads = core_use;
+    size_t blocksize = r/numthreads;
+
+    Matrix<T> result(r,l);
+    for(size_t i = 0;i<numthreads;++i)
+    {
+        startrow = i*blocksize;
+        if(i == numthreads-1){
+            endrow = r; //确保无论是否整除，都能包含所有行
+        }
+        else{
+            endrow = blocksize*(i+1);
+        }
+        threads.emplace_back(BlockMatrix_multiply<T>,std::cref(m1),std::cref(m2),std::ref(result),startrow,endrow);
+    }
+    
+    for(size_t j=0;j< numthreads;++j){
+        threads[j].join();
+    }
+    return result;
+}
+
 
 //打印矩阵
 template<typename T>
