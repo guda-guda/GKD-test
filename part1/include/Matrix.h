@@ -49,27 +49,6 @@ public:
     friend Matrix<T> softmax<>(const Matrix<T>&);//softmax函数
 };
 
-//指定构造矩阵
-template<typename T> 
-Matrix<T>::Matrix(const std::vector<std::vector<float>> mat)
-{
-    if (mat.empty()) {
-        rows = colums = 0;
-        return;
-    }
-    rows = mat.size();
-    colums = mat[0].size();
-    elements.resize(rows*colums);
-    //循环嵌套结构给矩阵赋值
-    for (size_t i = 0; i <rows; ++i)
-    {
-        for (size_t j = 0; j < colums; ++j)
-        {
-            elements[i*colums+j]=mat[i][j];//一维向量存储二维数据
-        }
-    }
-}
-
 //Opencv矩阵转换构造
 template<typename T> 
 Matrix<T>::Matrix(const cv::Mat& srcImage)
@@ -136,6 +115,7 @@ Matrix<T> Matrix<T>::operator+(const Matrix<T>& other)
 }
 
 //矩阵乘法,重载运算符"*"
+//part4修改：多线程，每个线程负责计算一部分行列的矩阵相乘，然后求和
 template<typename T>
 Matrix<T> Matrix<T>::operator*(const Matrix<T>& other) 
     {
