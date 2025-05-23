@@ -10,14 +10,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexec-charset=gbk") 
 
 # 手动指定 OpenCV 库的搜索路径
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../lib)
 
 # 指定 OpenCV 头文件路径
 set(OpenCV_INCLUDE_DIRS "E:/OpenCV/build/x64/MinGW/include")
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-# 指定头文件搜索路径
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 # 添加可执行文件
 add_executable(opencv_nums client_opencv_nums.cpp)
