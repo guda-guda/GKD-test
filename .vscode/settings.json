@@ -71,5 +71,6 @@
         "stop_token": "cpp",
         "thread": "cpp"
     },
-    "C_Cpp.errorSquiggles": "enabled"
+    "C_Cpp.errorSquiggles": "enabled",
+    "cmake.sourceDirectory": "E:/code/GKD-test/part1"
 }

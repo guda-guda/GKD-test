@@ -4,15 +4,6 @@
 #include "model.h"
 #include <iostream>
 
-template<typename T>
-void forward(Matrix<T>& target)
-{
-    size_t r = target.get_rows();
-    size_t l = target.get_colums();
-    for(size_t i=0;i<r*l;++i){
-        target.elements[i]*=2;
-    }
-}
 
 template<typename T>
 Matrix<T> recvMatrix(SOCKET client)
