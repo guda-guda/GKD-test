@@ -24,6 +24,9 @@ std::mutex mtx;
 std::vector<float> probablities(10,0.0f);
 int recognizeDigit = -1;
 bool running =true;
+const int PREDICTION_HISTORY_SIZE = 5; // 保留最近5次预测结果
+std::deque<int> predictionHistory;     // 预测历史队列
+std::mutex historyMtx;                 // 历史队列的互斥锁
 
 //鼠标回调函数
 static void onMouse(int event,int x,int y,int flags,void* userdata)
@@ -71,10 +74,12 @@ void recognitionThread()
         WSACleanup();
         return; 
     }
-
-    while(running){//复制当前画布用于识别
-        Mat currentImage;
-    {
+    
+    
+    
+    while(running){  
+    Mat currentImage;
+    {//复制当前画布用于识别
         std::lock_guard<std::mutex> lock(mtx);
         drawingBoard.copyTo(currentImage);
     }
@@ -82,9 +87,13 @@ void recognitionThread()
     // 检查画布是否有内容（非白色像素）
     Scalar meanVal = mean(currentImage);
     if (meanVal[0] > 250) { // 如果图像几乎全白（未绘制）
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        continue; // 跳过识别和发送
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));   
+    continue; // 跳过识别和发送
     }
+
+    // 调试：保存当前发送的图像
+    static int counter = 0;
+    imwrite("send_" + std::to_string(counter++) + ".png", currentImage);
 
     //图像二值化预处理
     Mat processedImage;
@@ -95,6 +104,12 @@ void recognitionThread()
     std::vector<Vec4i> hierarchy;//存储轮廓层级关系
     findContours(processedImage,contours,hierarchy,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE);
     
+    // 检查是否找到轮廓
+    if (contours.empty()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        continue;
+    }
+
     //找到最大轮廓
     size_t largestCountourIdx = 0;
     double largestArea = 0;
@@ -110,26 +125,24 @@ void recognitionThread()
 
     //获取边界框
     Rect boundingBox = boundingRect(contours[largestCountourIdx]);
-    if (!contours.empty()) {
-            boundingBox = boundingRect(contours[largestCountourIdx]);
-        } else {
-            // 如果没有检测到轮廓，使用默认区域
-            boundingBox = Rect(100, 100, 200, 200);
-        }
 
     //提取数字区域并调整为正方形
-    int size = max(boundingBox.width,boundingBox.height);
+    int size = std::max(boundingBox.width,boundingBox.height);
+    // 改进：增加20%边距
+    int padding = size * 0.2;
+    size += 2 * padding;    
     Mat digitROI = Mat::zeros(size,size,CV_8UC1);
-    Mat roi = digitROI(Rect((size - boundingBox.width)/2,
-                             (size-boundingBox.height)/2,
+    Mat roi = digitROI(Rect((size - boundingBox.width)/2+padding,
+                             (size-boundingBox.height)/2+padding,
                             boundingBox.width,boundingBox.height));
     processedImage(boundingBox).copyTo(roi);
 
     //调整为28*28
     Mat resized;
     resize(digitROI,resized,Size(28,28),0,0,INTER_AREA);//调用resize方法调整图片矩阵大小
+    resized.convertTo(resized, CV_32F, 1.0/255.0); 
     //矩阵转化
-    Matrix<T> mtxnum(resized);
+    Matrix<float> mtxnum(resized);
     // 发送矩阵数据
     size_t rows = mtxnum.get_rows();
     size_t cols = mtxnum.get_colums();
@@ -138,29 +151,77 @@ void recognitionThread()
     send(client, reinterpret_cast<const char*>(&cols), sizeof(cols), 0);
     send(client, reinterpret_cast<const char*>(mtxnum.elements.data()), rows*cols*sizeof(T), 0);
 
+    if (send(client, reinterpret_cast<const char*>(&rows), sizeof(rows), 0) == SOCKET_ERROR ||
+            send(client, reinterpret_cast<const char*>(&cols), sizeof(cols), 0) == SOCKET_ERROR ||
+            send(client, reinterpret_cast<const char*>(mtxnum.elements.data()), rows * cols * sizeof(T), 0) == SOCKET_ERROR) {
+            std::cerr << "发送数据失败" << std::endl;
+            break;
+        }
+
     // 接收识别结果
     size_t outRows, outCols;
-    recv(client, reinterpret_cast<char*>(&outRows), sizeof(outRows), 0);
-    recv(client, reinterpret_cast<char*>(&outCols), sizeof(outCols), 0);
+    if (recv(client, reinterpret_cast<char*>(&outRows), sizeof(outRows), 0) <= 0 ||
+            recv(client, reinterpret_cast<char*>(&outCols), sizeof(outCols), 0) <= 0) {
+            std::cerr << "接收数据失败" << std::endl;
+            break;
+        }
         
     Matrix<T> output(outRows, outCols);
-    recv(client, reinterpret_cast<char*>(output.elements.data()), outRows*outCols*sizeof(T), 0);
-    //更新概率和识别结果
+    if (recv(client, reinterpret_cast<char*>(output.elements.data()), outRows * outCols * sizeof(T), 0) <= 0) {
+            std::cerr << "接收结果失败" << std::endl;
+            break;;
+        }
+
+    
+{   //更新概率和识别结果
     {
         std::lock_guard<std::mutex> lock(mtx);
-        probablities = output.elements;
+        probablities.assign(output.elements.begin(), output.elements.end());
         recognizeDigit = distance(probablities.begin(),max_element(probablities.begin(),probablities.end()));
     }
-}    
 
-    //演示避免CPU占用过高
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+     // 新增：更新预测历史
+    {   std::lock_guard<std::mutex> histLock(historyMtx);
+        predictionHistory.push_back(recognizeDigit);
+        
+        // 保持队列长度不超过设定值
+        if (predictionHistory.size() > PREDICTION_HISTORY_SIZE) {
+            predictionHistory.pop_front();
+        }
+    }
+    // 调试输出
+    std::cout << "接收概率: ";
+    for (float p :probablities) std::cout << p << " ";
+    std::cout << "\n预测数字: " << recognizeDigit << std::endl;
+}
     
+}
     //关闭套接字
     closesocket(client);
     WSACleanup();
+}
 
-   
+// 新增函数：计算出现最频繁的数字
+int getSmoothedPrediction() {
+    std::lock_guard<std::mutex> lock(historyMtx);
+    if (predictionHistory.empty()) return -1;
+
+    // 统计频率
+    std::unordered_map<int, int> freqMap;
+    for (int num : predictionHistory) {
+        freqMap[num]++;
+    }
+
+    // 找到最高频率的数字
+    int maxFreq = 0;
+    int result = predictionHistory.back(); // 默认返回最新结果
+    for (const auto& pair : freqMap) {
+        if (pair.second > maxFreq) {
+            maxFreq = pair.second;
+            result = pair.first;
+        }
+    }
+    return result;
 }
 
 int main()
@@ -178,20 +239,21 @@ int main()
     //主循环
     while(true){
         //创建显示图像
-        Mat dispalyImage = Mat::zeros(400,800,CV_8UC3);
+        Mat displayImage = Mat::zeros(400,800,CV_8UC3);
 
         //左侧：绘图区域
-        Mat leftROI =dispalyImage(Rect(0,0,400,400));
+        Mat leftROI =displayImage(Rect(0,0,400,400));
         cvtColor(drawingBoard,leftROI,COLOR_GRAY2BGR);
 
         //右侧：概率柱状图和识别结果
-        Mat rightROI = dispalyImage(Rect(400,0,400,400));
+        Mat rightROI = displayImage(Rect(400,0,400,400));
         rightROI = Scalar(0,0,0);
 
         //绘制结果
         {
             std::lock_guard<std::mutex> lock(mtx);
             //绘制识别的数字
+            int recognizeDigit = getSmoothedPrediction();
             if(recognizeDigit != -1){
                 putText(leftROI,"Prediction:",Point(50,50),
                         FONT_HERSHEY_SIMPLEX,0.7,Scalar(0,0,255),2);
@@ -223,7 +285,8 @@ int main()
         }
 
         //显示图像
-        imshow("Draw a digit",dispalyImage);
+        imshow("Draw a digit",displayImage);
+        waitKey(5); // 减少延迟至5ms
 
         //处理按键
         char key = waitKey(10);

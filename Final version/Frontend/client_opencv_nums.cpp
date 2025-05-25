@@ -68,7 +68,7 @@ int main()
         return 1; 
     }
 
-    Mat num = imread("E:\\code\\GKD-test\\part6\\nums\\2.png",IMREAD_GRAYSCALE);
+    Mat num = imread("E:\\code\\GKD-test\\Final version\\nums\\2.png",IMREAD_GRAYSCALE);
     if(num.empty())
     {
         std::cerr <<"无法加载图像" <<std::endl;

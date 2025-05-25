@@ -1,3 +1,0 @@
-E:/code/GKD-test/Final version plus/Frontend/build/CMakeFiles/opencv_nums.dir
-E:/code/GKD-test/Final version plus/Frontend/build/CMakeFiles/edit_cache.dir
-E:/code/GKD-test/Final version plus/Frontend/build/CMakeFiles/rebuild_cache.dir

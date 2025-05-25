@@ -30,8 +30,16 @@ public:
 model( Matrix<T> w1, Matrix<T> b1, Matrix<T> w2, Matrix<T> b2){weight1=w1;weight2=w2;bias1=b1;bias2=b2;};
 model(const std::string& foldername);
 ~model(){};
-Matrix<T> forward(Matrix<T> input) override{Matrix<T> result = softmax(RELU(input * weight1 + bias1) * weight2 + bias2);return result;};
+Matrix<T> forward(Matrix<T> input) override;
 };
+
+template<typename T>
+Matrix<T> model<T>::forward(Matrix<T> input)
+{   
+    Matrix<T> result1 = Blockmultiply_threads(RELU(Blockmultiply_threads(input,weight1,32)+bias1),weight2,32)+bias2;
+    Matrix<T> result = softmax(result1);
+    return result;
+}
 
 //构造基类指针
 template<typename T>

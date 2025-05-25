@@ -4,6 +4,11 @@
 #include "model.h"
 #include <iostream>
 
+Basemodel<float>* m1 = nullptr;
+void init_model() {
+    m1 = createmodel<float>("E:\\code\\GKD-test\\part2\\mnist-fc");
+}
+
 template<typename T>
 Matrix<T> recvMatrix(SOCKET client)
 {   
@@ -81,16 +86,29 @@ void process()
             WSACleanup();
         }
         std::cout <<"客户端已连接" <<std::endl;
-
+        
+        init_model();
+        bool keepAlive = true;
+        
+        while(keepAlive){
+        try{
         //接受矩阵
         Matrix<T> recvMax=recvMatrix<T>(clientSocket);
         std::cout <<"已接收矩阵" <<std::endl;
-        
-        Basemodel<float>* m1 = createmodel<float>("E:\\code\\GKD-test\\part2\\mnist-fc");
+        // 验证形状
+        if (recvMax.get_rows() != 1 || recvMax.get_colums() != 784) {
+        std::cerr << "错误输入形状: " << recvMax.get_rows() << "x" << recvMax.get_colums() << std::endl;
+        return;
+        }
         Matrix<T>result = m1->forward(recvMax);
+        result.print();
         //发送结果
         sendMatrix(clientSocket,result);
-        std::cout <<"结果已发送" <<std::endl;
+        std::cout <<"结果已发送" <<std::endl;}catch(const std::exception& e){
+            std::cerr <<"通信错误" <<e.what() <<std::endl;
+            keepAlive = false;
+        }      
+    }
 
         closesocket(clientSocket);
     }
